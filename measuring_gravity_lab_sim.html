@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<!-- saved from url=(0062)https://physics.bu.edu/~duffy/HTML5/constant_acceleration.html -->
+<!-- This is code that was taken from Andrew Duffy's repository at Boston University and was hacked apart to serve my purposes. -->
+<!-- Many vestiges of his original code still remain as I learn how to work with JavaScript in its current incarnation and HTML5 -->
+<!-- Uploaded to thadszabo.github.io by Thad Szabo from Cerritos College -->
+<html><head>
+  <title>Measuring Gravity Lab</title>
+</head>
+
+<body style="font-family:sans-serif; font-size:15px; width:700px; margin-left:auto; margin-right:auto;">
+<center>
+<h3>Measuring Gravity Lab</h3>
+</center>
+    <canvas id="myCanvas" width="700" height="850"></canvas>
+<center>
+    <div id="buttons">
+      <input type="button" id="play" value="Start or Resume Drop" onclick="play()">
+      <input type="button" id="pause" value="Pause to Take Measurement" onclick="pause()">
+      <input type="button" id="reset" value="Reset" onclick="reset()">
+    </div>
+
+</center>
+
+  <script>
+
+    // Edited version of simulation first posted on 2022-01-22
+
+      function setMotion(newMotion)
+      {
+             //get the element
+             motion = Number(newMotion);
+             reset();
+     }
+
+      function play() {
+        window.clearTimeout(timer);
+        runFlag = 1;
+        runMotion();
+
+      }
+
+      function pause() {
+        window.clearTimeout(timer);
+        runFlag = 0;
+
+      }
+
+      function stepForward() {
+        window.clearTimeout(timer);
+        runFlag = 1;
+        drawMotion();
+
+      }
+
+      function stepBack() {
+        window.clearTimeout(timer);
+        index = index-2;
+        if (index < -1) index = -1;
+        time = index/20;
+        xPos = xBase;
+        runFlag = 1;
+        drawMotion();
+
+      }
+
+
+      function reset() {
+        window.clearTimeout(timer);
+        index = -1;
+        time = 0.0;
+        runFlag = 1;
+//        if (motion == 1) {
+//            accel = 10;
+//            xIncrement = 0.2;
+//            xNumDecimals = 1;
+//            yIncrement = 5;
+//            yNumDecimals = 0;
+//            fps = 50;
+//        }
+//        if (motion == 2) {
+//            accel = 2;
+//            xIncrement = 1;
+//            xNumDecimals = 0;
+//            yIncrement = 5;
+//            yNumDecimals = 0;
+//            if (graphType == 2) yIncrement = 25;
+//            fps = 10;
+//        }
+
+
+        drawMotion();
+      }
+
+
+      var canvas = document.getElementById("myCanvas");
+      var context = canvas.getContext("2d");
+      var index = -1;
+
+      var xBase = 580;     // for the motion
+      var xBase2 = 60;   // for the graph
+      var yBase = 70;     // for the motion
+      var yBase2 = 70;    // for the graph
+      var xInit = 37;
+      var graphType = 1;
+      var graphTitle = ' ';
+      var yAxisTitle = 'v (m/s)';
+      var xAxisTitle = 't (s)';
+      var motion = 1;
+      var xIncrement = 0.2;
+      var xNumDecimals = 1;
+      var yIncrement = 5;
+      var yNumDecimals = 0;
+      var fps = 50;
+      var graphY = 4;
+      var graphX = 10;
+      var yStart = yBase+120;
+      var plotColor = '#ff00ff';
+      var scenario = 1;
+    //      var accel = 10;
+    var accel = 0.45 + 4.2*(Math.random());
+      var radius = 6;
+      var time = 0.0;
+      var deltat = 1/20.0;
+      var timer;
+      var runFlag = 1;
+
+      reset();
+
+    function drawMotion() {
+
+  //    console.log("In the drawMotion function, with runFlag = " + runFlag );
+
+      if ((index >= 350)) runFlag = 0;
+
+  //    console.log("In the drawMotion function, with runFlag = " + runFlag + " Fx = " + Fx);
+
+      if (runFlag == 1) {    //      run if runFlag equal 1, not if equal 0
+        // clear
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        index = index + 1;
+
+        // set background color for the entire thing
+           context.fillStyle = "#ffd";
+           context.fillRect(0, 0, canvas.width, canvas.height);
+
+        // set background color for the motion
+           context.fillStyle = "#eff";
+           context.fillRect(xBase2, yBase2, 40*graphX, 40*graphY);
+
+           var axisLabel = '';
+           var axisValue = 0;
+
+// first, draw the axes for the motion
+
+         // vertical grid lines
+         context.lineWidth = 2;
+         context.strokeStyle = '#888';
+
+         for (var i = 0; i <= graphX; i++) {
+           context.beginPath();
+           context.moveTo(xBase2+40*i, yBase2);
+           context.lineTo(xBase2+40*i, yBase2+40*graphY+10);
+           context.stroke();
+           context.font = '14pt Calibri';
+           context.fillStyle = 'black';
+           context.textAlign = 'center';
+           context.textBaseline = 'middle';
+           axisValue = xIncrement*(i);
+           axisLabel = axisValue.toFixed(xNumDecimals);
+           context.fillText(axisLabel, xBase2+40*i, yBase2+40*graphY+20);
+          }
+
+         // horizontal grid lines
+         for (i = 0; i <= graphY; i++) {
+           context.beginPath();
+           context.moveTo(xBase2-10, yBase2+40*i);
+           context.lineTo(xBase2+40*graphX, yBase2+40*i);
+           context.stroke();
+           context.font = '14pt Calibri';
+           context.fillStyle = 'black';
+           context.textAlign = 'center';
+           context.textBaseline = 'middle';
+           axisValue = yIncrement*(4-i);
+           axisLabel = axisValue.toFixed(yNumDecimals);
+           context.fillText(axisLabel, xBase2-30, yBase2+40*i);
+
+          }
+
+         // x-axis
+           context.strokeStyle = '#000';
+           context.lineWidth = 4;
+           context.beginPath();
+           context.moveTo(xBase2-1, yBase2+40*graphY);
+           context.lineTo(xBase2+40*graphX+20, yBase2+40*graphY);
+           context.stroke();
+           context.moveTo(xBase2+40*graphX+10, yBase2+40*graphY-6);
+           context.lineTo(xBase2+40*graphX+20, yBase2+40*graphY);
+           context.lineTo(xBase2+40*graphX+10, yBase2+40*graphY+6);
+           context.lineJoin = 'miter';
+           context.stroke();
+           context.font = '16pt Calibri';
+           context.fillStyle = 'black';
+           context.textAlign = 'left';
+           context.fillText(xAxisTitle, xBase2+40*graphX+24, yBase2+40*graphY);
+
+         // y-axis
+           context.strokeStyle = '#000';
+           context.beginPath();
+           context.moveTo(xBase2, yBase2-20);
+           context.lineTo(xBase2, yBase2+40*graphY);
+           context.stroke();
+           context.moveTo(xBase2-6, yBase2-10);
+           context.lineTo(xBase2, yBase2-20);
+           context.lineTo(xBase2+6, yBase2-10);
+           context.lineJoin = 'miter';
+           context.stroke();
+           context.strokeStyle = '#000';
+           context.textAlign = 'center';
+  //         console.log("In the drawMotion function, with yAxisTitle = " + yAxisTitle + xBase2 );
+
+           context.font = '16pt Calibri';
+           context.fillStyle = 'black';
+           context.fillText(yAxisTitle, xBase2-30, 35);
+
+        // set line color
+           context.strokeStyle = '#999';
+           context.lineWidth = 2;
+
+          time = index/fps;
+          var position = 0.5*accel*time*time;
+	  var pos_err = (1.0 - 0.02 + 0.040*Math.random())*position;
+           var velocity = accel*time;
+ //          console.log(time + ' ' + xPos + ' ' + yPos);
+
+           var counter = 0;
+// diagram of the motion
+           if (motion < 3) {
+             context.strokeStyle = 'blue';
+             context.fillStyle = 'blue';
+             context.beginPath();
+             context.arc(xBase, yBase+1.3*position/xIncrement, radius, 0, 2 * Math.PI, false);
+             context.fill();
+             context.stroke();
+//             drawArrow(0,-velocity,xBase,yBase+1.3*position/xIncrement,"green");  // velocity
+        //   motion diagrams
+             context.strokeStyle = 'blue';
+             context.fillStyle = 'blue';
+             context.beginPath();
+             context.arc(xBase, yBase, radius, 0, 2 * Math.PI, false);
+             context.fill();
+             context.stroke();
+             for (var i = 1; i<= index; i++) {
+               counter = counter + 1;
+               if (counter >= 20) {
+                   counter = 0;
+		   context.strokeStyle = "#C0C0FF";
+		   context.fillStyle = "#A0A0FF";
+                 context.beginPath();
+                 context.arc(xBase, yBase+1.3*(0.5*accel*i*i/(fps*fps))/xIncrement, radius, 0, 2 * Math.PI, false);
+                 context.fill();
+                 context.stroke();
+               }
+             }
+           }
+
+
+
+ //     console.log("In the drawMotion function, with runFlag = " + runFlag + " x2 = " + x2);
+
+
+           // graph title
+           context.font = 'bold 16pt Calibri';
+           context.fillStyle = 'purple';
+           context.textAlign = 'center';
+           context.fillText(graphTitle, xBase2+200, 35);
+
+           context.font = '16pt Calibri';
+           context.fillStyle = 'black';
+
+        var timeLabel = 't = ';
+        timeLabel = timeLabel + time.toFixed(3) + ' s';
+        context.textAlign = 'left';
+        context.fillText(timeLabel, xBase2, yBase2+40*(graphY+1.3));
+
+        var xLabel = 'x = ';
+        xLabel = xLabel + pos_err.toFixed(2) + ' m';
+        context.textAlign = 'left';
+        context.fillText(xLabel, xBase2+120, yBase+40*(graphY+1.3));
+
+        var vLabel = 'v = ';
+        vLabel = vLabel + velocity.toFixed(2) + ' m/s';
+        context.textAlign = 'left';
+        context.fillText(vLabel, xBase2+250, yBase+40*(graphY+1.3));
+
+        context.fillStyle = 'blue';
+          var description1 = "A ball is dropped from rest";
+
+	  
+        if (motion == 1) {
+          context.fillText(description1, xBase2, yBase2+40*(graphY+2.2));
+        }
+//        if (motion == 2) {
+//          description1 = "A ball is dropped from rest near the surface of the Moon";
+//          context.fillText(description1, xBase2, yBase2+40*(graphY+2.2));
+//        }
+
+
+   }
+}
+
+    function runMotion() {
+        drawMotion();
+        if (runFlag == 1) {
+          timer = window.setTimeout(runMotion, 1000/60);
+        }
+      }
+
+
+  </script>
+
+  <p>The simulation shows an object experiencing constant acceleration as it falls to the surface of a random planet. Clicking "Pause to Take Measurement" gives the position of the ball with a small, random error.</p>
+  <p>A motion diagram shows the progress of the fall, with images being left behind at regular intervals.</p>
+
+
+</body></html>
